@@ -1,11 +1,13 @@
 # Be sure to restart your server when you modify this file.
+slack_tokens = Rails.env.test? ? {} : Rails.application.credentials.slack
 
+puts(slack_tokens)
 SlackMsgr.configure do |config|
-  config.verification_token = ENV['SLACK_VERIFICATION_TOKEN']
-  config.client_secret      = ENV['SLACK_CLIENT_SECRET']
-  config.signing_secret     = ENV['SLACK_SIGNING_SECRET']
+  config.verification_token = slack_tokens[:verification_token]
+  config.client_secret      = slack_tokens[:client_secret]
+  config.signing_secret     = slack_tokens[:signing_secret]
   config.access_tokens      = {
-    bot: ENV['BOT_ACCESS_TOKEN']
+    bot: slack_tokens[:bot_access_token]
   }
 end
 
