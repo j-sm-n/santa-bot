@@ -5,11 +5,10 @@ module Api
 
     def create
       user = User.find_or_create_by(slack_id: event_params[:user])
-      if event_params[:channel_type] == AppMentionService::IM_CHANNEL_TYPE && user.dm_channel_id.blank?
-        update_user_dm_channel(user)
-      end
-
       app_mention_service = AppMentionService.new(event_params, user)
+
+      update_user_dm_channel(user) if app_mention_service.message_sent_in_im? && user.dm_channel_id.blank?
+
       app_mention_service.handle_message
       ok_response = app_mention_service.respond
 
