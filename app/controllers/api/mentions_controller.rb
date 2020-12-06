@@ -38,7 +38,7 @@ module Api
       render json: { ok: true }
     end
 
-    def update_user_dm_channel
+    def update_user_dm_channel(user)
       user.update(dm_channel_id: event_params[:channel])
     end
   end

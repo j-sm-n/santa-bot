@@ -1,5 +1,5 @@
 class AppMentionService
-  COMMANDS = %i[].freeze
+  COMMANDS = %i[signup].freeze
   IM_CHANNEL_TYPE = "im"
 
   attr_reader :event_params, :user
@@ -10,15 +10,13 @@ class AppMentionService
   end
 
   def handle_message
-    return unless message_sent_in_im?
+    return unless message_sent_in_im? || (command.present? && valid_command?)
 
-    if user.address.blank?
-      response.push(
-        "It looks like I don't have your address on file. Please respond with your address so that your secret " \
-        "santa :shushing_face: knows where to send your gift."
-      )
+    if message_sent_in_im?
+      handle_direct_message
+    else
+      send(command)
     end
-    # send(command)
   end
 
   def respond
@@ -31,10 +29,35 @@ class AppMentionService
 
   private
 
+  def signup
+    raw_user_list = event_params[:text].scan(/(?<=\[).*?(?=\])/).first
+
+    signed_up_users = raw_user_list.split(", ").map do |raw_user|
+      add_user(raw_user)
+    end
+
+    response.push("I added #{signed_up_users.join(", ")} to my list... and I'm checking it twice :wink: :sparkles:")
+  end
+
+  def handle_direct_message
+    if user.address.blank?
+      response.push(
+        "It looks like I don't have your address on file. Please respond with your address so that your secret " \
+        "santa :shushing_face: knows where to send your gift."
+      )
+    end
+  end
+
+  def add_user(raw_user)
+    name = raw_user.split(":").first
+    slack_id = raw_user.scan(/<([^>]*)>/).flatten.first.sub("@", "")
+
+    User.find_or_create_by(name: name, slack_id: slack_id).name
+  end
+
   def valid_command?
     {
-      record: (stripped_text.count == 1 && stripped_text.first.to_i.positive?),
-      whatsup: stripped_text.count.zero?,
+      signup: user.slack_id == "UG72JMSDD",
     }[command]
   end
 
@@ -44,20 +67,12 @@ class AppMentionService
 
   def command
     @command ||= COMMANDS.find do |command|
-      sanitized_text.include?(command.to_s)
+      event_params[:text].include?(command.to_s)
     end
   end
 
   def sanitized_timestamp
     Time.use_zone("Pacific Time (US & Canada)") { Time.zone.at(event_params[:ts].to_f) }
-  end
-
-  def sanitized_text
-    event_params[:text].gsub(/\s*<[^()]*\>\s*/, " ").gsub(/[^0-9A-Za-z\s]/, "").downcase
-  end
-
-  def stripped_text
-    sanitized_text.gsub(/\s*#{command}\s*/, "").split(" ").reject(&:empty?)
   end
 
   def post_message(**opts)
