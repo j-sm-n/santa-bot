@@ -1,6 +1,7 @@
 class AppMentionService
-  COMMANDS = %i[signup].freeze
+  COMMANDS = %i[signup partners].freeze
   IM_CHANNEL_TYPE = "im"
+  ADMIN_SLACK_ID = "UG72JMSDD"
 
   attr_reader :event_params, :user
 
@@ -10,7 +11,7 @@ class AppMentionService
   end
 
   def handle_message
-    return unless message_sent_in_im? || (command.present? && valid_command?)
+    return unless message_sent_in_im? || (command.present? && user.slack_id == ADMIN_SLACK_ID)
 
     if message_sent_in_im?
       handle_direct_message
@@ -30,13 +31,23 @@ class AppMentionService
   private
 
   def signup
-    raw_user_list = event_params[:text].scan(/(?<=\[).*?(?=\])/).first
-
-    signed_up_users = raw_user_list.split(", ").map do |raw_user|
+    signed_up_users = command_list.map do |raw_user|
       add_user(raw_user)
     end
 
     response.push("I added #{signed_up_users.join(", ")} to my list... and I'm checking it twice :wink: :sparkles:")
+  end
+
+  def partners
+    command_list.each do |raw_partners|
+      add_partnership(raw_partners)
+    end
+
+    response.push("I've made a note of all the partners :heart:")
+  end
+
+  def command_list
+    @command_list ||= event_params[:text].scan(/(?<=\[).*?(?=\])/).first.split(",")
   end
 
   def handle_direct_message
@@ -55,10 +66,11 @@ class AppMentionService
     User.find_or_create_by(name: name, slack_id: slack_id).name
   end
 
-  def valid_command?
-    {
-      signup: user.slack_id == "UG72JMSDD",
-    }[command]
+  def add_partnership(raw_partners)
+    partner_slack_ids = raw_partners.gsub("@", "").scan(/<([^>]*)>/).flatten
+    users = User.where(slack_id: partner_slack_ids)
+
+    Partnership.create(partner_one: users.first, partner_two: users.last)
   end
 
   def message_sent_in_im?
