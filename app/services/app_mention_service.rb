@@ -63,12 +63,7 @@ class AppMentionService
   end
 
   def handle_direct_message
-    if user.address.blank?
-      response.push(
-        "It looks like I don't have your address on file. Please respond with your address so that your secret " \
-        "santa :shushing_face: knows where to send your gift."
-      )
-    end
+    response.push("I will deliver your message to, <@#{user.recipient.slack_id}>, your recipient. When they respond, I'll deliver the message here.")
   end
 
   def add_user(raw_user)
