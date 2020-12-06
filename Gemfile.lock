@@ -126,7 +126,7 @@ GEM
     rb-fsevent (0.10.4)
     rb-inotify (0.10.1)
       ffi (~> 1.0)
-    slack_msgr (0.0.6)
+    slack_msgr (0.0.7)
       faraday (~> 0.15.4)
     spring (2.1.1)
     spring-watcher-listen (2.0.1)
