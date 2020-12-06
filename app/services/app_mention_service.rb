@@ -1,5 +1,5 @@
 class AppMentionService
-  COMMANDS = %i[signup partners pairsantas].freeze
+  COMMANDS = %i[signup partners pairsantas start].freeze
   IM_CHANNEL_TYPE = "im"
   ADMIN_SLACK_ID = "UG72JMSDD"
   ERROR_MESSAGE = "Oh no! There's too much ginger bread between my ears... something went wrong and that makes me a sad santa :disappointed:"
@@ -27,6 +27,10 @@ class AppMentionService
       text: response.join("\n"),
     )
     slack_response[:ok]
+  end
+
+  def message_sent_in_im?
+    event_params[:channel_type] == IM_CHANNEL_TYPE
   end
 
   private
@@ -58,6 +62,13 @@ class AppMentionService
     end
   end
 
+  def start
+    User.all.each do |user|
+      secret_santa_service = SecretSantaService.new(user)
+      secret_santa_service.send_introduction
+    end
+  end
+
   def command_list
     @command_list ||= event_params[:text].scan(/(?<=\[).*?(?=\])/).first.split(",")
   end
@@ -78,10 +89,6 @@ class AppMentionService
     users = User.where(slack_id: partner_slack_ids)
 
     Partnership.create(partner_one: users.first, partner_two: users.last)
-  end
-
-  def message_sent_in_im?
-    event_params[:channel_type] == IM_CHANNEL_TYPE
   end
 
   def command
