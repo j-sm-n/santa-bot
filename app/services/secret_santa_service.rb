@@ -31,13 +31,9 @@ class SecretSantaService
 
     return false if user.dm_channel_id.blank?
 
-    responses = introduction_snippets.map do |snippet|
-      resp = send_dm(snippet)
-      sleep(5)
-      resp[:ok]
-    end
+    response = send_dm(introduction_snippets.join("\n\n"))
 
-    responses.all?(true)
+    response[:ok]
   end
 
   def send_message(to:, text:)

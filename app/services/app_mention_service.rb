@@ -82,10 +82,11 @@ class AppMentionService
   end
 
   def add_user(raw_user)
-    name = raw_user.split(":").first
+    name = raw_user.split(":").first.strip
     slack_id = raw_user.scan(/<([^>]*)>/).flatten.first.sub("@", "")
-
-    User.find_or_create_by(name: name, slack_id: slack_id).name
+    user = User.find_or_create_by(slack_id: slack_id)
+    user.update(name: name)
+    name
   end
 
   def add_partnership(raw_partners)
