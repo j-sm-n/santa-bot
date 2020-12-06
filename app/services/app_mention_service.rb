@@ -74,7 +74,11 @@ class AppMentionService
   end
 
   def handle_direct_message
-    response.push("I will deliver your message to, <@#{user.recipient.slack_id}>, your recipient. When they respond, I'll deliver the message here.")
+    mentioned_ids = event_params[:text].gsub("@", "").scan(/<([^>]*)>/).flatten
+    secret_santa_service = SecretSantaService.new(user)
+
+    secret_santa_service.handle_message(raw_text: event_params[:text], mentioned_ids: mentioned_ids)
+    response.push(secret_santa_service.direct_message_response)
   end
 
   def add_user(raw_user)
