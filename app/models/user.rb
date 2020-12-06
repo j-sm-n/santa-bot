@@ -8,4 +8,12 @@ class User < ApplicationRecord
 
     User.where(id: partner_ids)
   end
+
+  def secret_santa
+    SecretSantaPair.find_by(recipient_id: id)&.secret_santa
+  end
+
+  def recipient
+    SecretSantaPair.find_by(secret_santa_id: id)&.recipient
+  end
 end

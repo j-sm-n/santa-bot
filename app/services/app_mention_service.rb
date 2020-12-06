@@ -1,7 +1,8 @@
 class AppMentionService
-  COMMANDS = %i[signup partners].freeze
+  COMMANDS = %i[signup partners pairsantas].freeze
   IM_CHANNEL_TYPE = "im"
   ADMIN_SLACK_ID = "UG72JMSDD"
+  ERROR_MESSAGE = "Oh no! There's too much ginger bread between my ears... something went wrong and that makes me a sad santa :disappointed:"
 
   attr_reader :event_params, :user
 
@@ -44,6 +45,17 @@ class AppMentionService
     end
 
     response.push("I've made a note of all the partners :heart:")
+  end
+
+  def pairsantas
+    if SecretSantaPairService.new.go!
+      response.push(
+        "I've made my list and checked it twice. All of you good boys and girls have been assigned a secret santa. :wink: :shushing_face:\n" \
+        "Simply tell me to `start`. :gift: I will message all of the participants individually telling them their secret santa."
+      )
+    else
+      response.push(ERROR_MESSAGE)
+    end
   end
 
   def command_list
