@@ -4,10 +4,8 @@ one:
   name: MyString
   slack_id: MyString
   dm_channel_id: MyString
-  address: MyString
 
 two:
   name: MyString
   slack_id: MyString
   dm_channel_id: MyString
-  address: MyString
