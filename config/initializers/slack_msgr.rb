@@ -1,7 +1,6 @@
 # Be sure to restart your server when you modify this file.
 slack_tokens = Rails.env.test? ? {} : Rails.application.credentials.slack
 
-puts(slack_tokens)
 SlackMsgr.configure do |config|
   config.verification_token = slack_tokens[:verification_token]
   config.client_secret      = slack_tokens[:client_secret]

@@ -1,24 +1,30 @@
 class AppMentionService
   COMMANDS = %i[].freeze
+  IM_CHANNEL_TYPE = "im"
 
-  attr_reader :event_params, :declared_response
+  attr_reader :event_params, :user
 
-  def initialize(event_params, declared_response)
+  def initialize(event_params, user)
     @event_params = event_params
-    @declared_response = declared_response
+    @user = user
   end
 
   def handle_message
-    declare_response(declared_response)
-    # return unless command.present? && valid_command?
-    #
+    return unless message_sent_in_im?
+
+    if user.address.blank?
+      response.push(
+        "It looks like I don't have your address on file. Please respond with your address so that your secret " \
+        "santa :shushing_face: knows where to send your gift."
+      )
+    end
     # send(command)
   end
 
   def respond
     slack_response = post_message(
       channel: event_params[:channel],
-      text: response,
+      text: response.join("\n"),
     )
     slack_response[:ok]
   end
@@ -30,6 +36,10 @@ class AppMentionService
       record: (stripped_text.count == 1 && stripped_text.first.to_i.positive?),
       whatsup: stripped_text.count.zero?,
     }[command]
+  end
+
+  def message_sent_in_im?
+    event_params[:channel_type] == IM_CHANNEL_TYPE
   end
 
   def command
@@ -58,12 +68,7 @@ class AppMentionService
     Rails.configuration.slack_msgr
   end
 
-  def declare_response(response)
-    @response = response
-  end
-
   def response
-    @response ||= "I'm sorry. I didn't quite get that. " \
-                  "Please type `@MrStalky help` for a list of the commands I understand."
+    @response ||= ["Merry christmas, <@#{user.slack_id}>! :santa: :christmas_tree:"]
   end
 end
